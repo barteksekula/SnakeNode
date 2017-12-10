@@ -2,14 +2,15 @@ import Direction from './Direction';
 import Tile from './Tile';
 
 export default class Snake {
-  constructor(startPoint: Tile, initialLength: number) {
+  constructor(startPoint: Tile, initialLength: number, size: number = 1) {
+    this._size = size;
     this._reset = () => {
       this._head = startPoint;
       this._body = [];
       this._direction = Direction.RIGHT;
       if (initialLength > 1) {
         for (let i = 1; i < initialLength; i++) {
-          this._body.push(new Tile(startPoint.x - i, startPoint.y));
+          this._body.push(new Tile(startPoint.x - this._size * i, startPoint.y, this._size));
         }
       }
     };
@@ -36,6 +37,10 @@ export default class Snake {
     return this._head;
   }
 
+  get tail(): Tile {
+    return this._body[this._body.length - 1];
+  }
+
   get body(): Array<Tile> {
     return this._body;
   }
@@ -49,16 +54,16 @@ export default class Snake {
 
     switch (this.direction) {
       case Direction.DOWN:
-        nextElement = new Tile(this.head.x, this.head.y + 1);
+        nextElement = new Tile(this.head.x, this.head.y + this._size, this._size);
         break;
       case Direction.LEFT:
-        nextElement = new Tile(this.head.x - 1, this.head.y);
+        nextElement = new Tile(this.head.x - this._size, this.head.y, this._size);
         break;
       case Direction.UP:
-        nextElement = new Tile(this.head.x, this.head.y - 1);
+        nextElement = new Tile(this.head.x, this.head.y - this._size, this._size);
         break;
       case Direction.RIGHT:
-        nextElement = new Tile(this.head.x + 1, this.head.y);
+        nextElement = new Tile(this.head.x + this._size, this.head.y, this._size);
         break;
     }
 
@@ -67,11 +72,11 @@ export default class Snake {
 
   move(): void {
     this.eat();
-    this.body.splice(-1, 1);
+    this._body.splice(-1, 1);
   }
 
   eat(): void {
-    this.body.splice(0, 0, this.head);
+    this._body.splice(0, 0, this.head);
     this._head = this.getNextElement();
   }
 
@@ -86,7 +91,7 @@ export default class Snake {
   }
 
   get isEatingItself(): Boolean {
-    return this.body.some((item) => {
+    return this._body.some((item) => {
       return item.equals(this.head);
     });
   }

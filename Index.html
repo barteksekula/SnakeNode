@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snake</title>
+</head>
+<script src="/dist/SnakeGame.js"></script>
+<body>
+
+<div>
+  Score = <span id="score"></span><br/>
+  Speed = <span id="speed"></span>
+</div>
+<canvas id="canvas"></canvas>
+
+<script type="text/javascript">
+  const score = document.getElementById("score");
+  const canvas = document.getElementById('canvas');
+  const boardSize = 400;
+  canvas.width = boardSize + 1;
+  canvas.height = boardSize + 1;
+  const context = canvas.getContext('2d');
+
+  const size = 10;
+  const game = new SnakeGame.Game(boardSize, boardSize, size);
+
+  function drawBoard() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'black';
+    context.strokeRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function drawSnake() {
+    context.fillStyle = 'blue';
+    game.snake.body.forEach(function (bodyPart) {
+      context.fillRect(bodyPart.x, bodyPart.y, bodyPart.size, bodyPart.size);
+    });
+  }
+
+  function drawMovedSnake() {
+    context.fillStyle = "white";
+    context.fillRect(game.snake.tail.x, game.snake.tail.y, game.snake.tail.size, game.snake.tail.size);
+    context.fillStyle = "blue";
+    context.fillRect(game.snake.head.x, game.snake.head.y, game.snake.head.size, game.snake.head.size);
+  }
+
+  function drawMeal() {
+    context.fillStyle = "red";
+    context.fillRect(game.meal.x, game.meal.y, game.meal.size, game.meal.size);
+  }
+
+  drawBoard();
+  drawSnake();
+
+  document.onkeydown = function(evt) {
+    evt = evt || window.event;
+    switch (evt.keyCode) {
+      case 37:
+        game.snake.changeDirection(SnakeGame.Direction.LEFT);
+        break;
+      case 38:
+        game.snake.changeDirection(SnakeGame.Direction.UP);
+        break;
+      case 39:
+        game.snake.changeDirection(SnakeGame.Direction.RIGHT);
+        break;
+      case 40:
+        game.snake.changeDirection(SnakeGame.Direction.DOWN);
+        break;
+    }
+  };
+
+  gameLoop = () => {
+    drawMovedSnake();
+    drawMeal();
+    game.tick();
+    score.innerText = game.score;
+    speed.innerText = game.speed;
+
+    if (game.isGameOver) {
+      game.reset();
+      drawBoard();
+    }
+  };
+
+  gameContinuous = () => {
+    gameLoop();
+
+    setTimeout(gameContinuous, 100 - (game.speed * 10));
+  };
+
+  gameContinuous();
+</script>
+
+</body>
+</html>

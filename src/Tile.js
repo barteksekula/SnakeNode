@@ -1,7 +1,8 @@
 export default class Tile {
-  constructor(x, y) {
+  constructor(x, y, size = 1) {
     this.x = x;
     this.y = y;
+    this.size = size;
   }
 
   equals(tile: Tile) {

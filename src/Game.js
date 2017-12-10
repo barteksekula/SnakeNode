@@ -3,15 +3,21 @@ import Board from './Board';
 import Tile from './Tile';
 
 export default class Game {
-  constructor(width: number, height: number) {
-    this.board = new Board(width, height);
-    this.snake = new Snake(this.board.center, 5);
+  constructor(width: number, height: number, size: number = 1) {
+    this.board = new Board(width, height, size);
+    this.snake = new Snake(this.board.center, 5, size);
+    this._size = size;
     this._score = 0;
+    this._speed = 1;
     this.generateNewMeal();
   }
 
   get score(): Number {
     return this._score;
+  }
+
+  get speed(): Number {
+    return this._speed;
   }
 
   get isGameOver(): Boolean {
@@ -20,6 +26,7 @@ export default class Game {
 
   reset() {
     this._score = 0;
+    this._speed = 1;
     this.snake.reset();
     this.generateNewMeal();
   }
@@ -28,6 +35,9 @@ export default class Game {
     if (this.snake.tick(this.meal)) {
       this.generateNewMeal();
       this._score++;
+      if (this._score % 3 === 0) {
+        this._speed++;
+      }
     }
   }
 
@@ -36,9 +46,9 @@ export default class Game {
   }
 
   generateNewMeal() {
-    let x = Game._getRandomInt(1, this.board.width - 1);
-    let y = Game._getRandomInt(1, this.board.height - 1);
+    let x = Game._getRandomInt(1, this.board.width / this.board.size - 1) * this.board.size;
+    let y = Game._getRandomInt(1, this.board.height / this.board.size - 1) * this.board.size;
 
-    this.meal = new Tile(x, y);
+    this.meal = new Tile(x, y, this._size);
   }
 }

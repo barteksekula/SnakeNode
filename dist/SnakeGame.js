@@ -90,10 +90,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Tile = function () {
   function Tile(x, y) {
+    var size = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
     _classCallCheck(this, Tile);
 
     this.x = x;
     this.y = y;
+    this.size = size;
   }
 
   _createClass(Tile, [{
@@ -138,15 +141,18 @@ var Snake = function () {
   function Snake(startPoint, initialLength) {
     var _this = this;
 
+    var size = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
     _classCallCheck(this, Snake);
 
+    this._size = size;
     this._reset = function () {
       _this._head = startPoint;
       _this._body = [];
       _this._direction = _Direction2.default.RIGHT;
       if (initialLength > 1) {
         for (var i = 1; i < initialLength; i++) {
-          _this._body.push(new _Tile2.default(startPoint.x - i, startPoint.y));
+          _this._body.push(new _Tile2.default(startPoint.x - _this._size * i, startPoint.y, _this._size));
         }
       }
     };
@@ -170,16 +176,16 @@ var Snake = function () {
 
       switch (this.direction) {
         case _Direction2.default.DOWN:
-          nextElement = new _Tile2.default(this.head.x, this.head.y + 1);
+          nextElement = new _Tile2.default(this.head.x, this.head.y + this._size, this._size);
           break;
         case _Direction2.default.LEFT:
-          nextElement = new _Tile2.default(this.head.x - 1, this.head.y);
+          nextElement = new _Tile2.default(this.head.x - this._size, this.head.y, this._size);
           break;
         case _Direction2.default.UP:
-          nextElement = new _Tile2.default(this.head.x, this.head.y - 1);
+          nextElement = new _Tile2.default(this.head.x, this.head.y - this._size, this._size);
           break;
         case _Direction2.default.RIGHT:
-          nextElement = new _Tile2.default(this.head.x + 1, this.head.y);
+          nextElement = new _Tile2.default(this.head.x + this._size, this.head.y, this._size);
           break;
       }
 
@@ -189,12 +195,12 @@ var Snake = function () {
     key: 'move',
     value: function move() {
       this.eat();
-      this.body.splice(-1, 1);
+      this._body.splice(-1, 1);
     }
   }, {
     key: 'eat',
     value: function eat() {
-      this.body.splice(0, 0, this.head);
+      this._body.splice(0, 0, this.head);
       this._head = this.getNextElement();
     }
   }, {
@@ -224,6 +230,11 @@ var Snake = function () {
       return this._head;
     }
   }, {
+    key: 'tail',
+    get: function get() {
+      return this._body[this._body.length - 1];
+    }
+  }, {
     key: 'body',
     get: function get() {
       return this._body;
@@ -238,7 +249,7 @@ var Snake = function () {
     get: function get() {
       var _this2 = this;
 
-      return this.body.some(function (item) {
+      return this._body.some(function (item) {
         return item.equals(_this2.head);
       });
     }
@@ -317,11 +328,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Board = function () {
-  function Board(width, height) {
+  function Board() {
+    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
+    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100;
+    var size = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
     _classCallCheck(this, Board);
 
-    this.width = width || 100;
-    this.height = height || 100;
+    this.size = size;
+    this.width = width;
+    this.height = height;
   }
 
   _createClass(Board, [{
@@ -332,7 +348,7 @@ var Board = function () {
   }, {
     key: 'center',
     get: function get() {
-      return new _Tile2.default(Math.floor(this.width / 2), Math.floor(this.height / 2));
+      return new _Tile2.default(Math.floor(this.width / 2), Math.floor(this.height / 2), this.size);
     }
   }]);
 
@@ -373,11 +389,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Game = function () {
   function Game(width, height) {
+    var size = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
     _classCallCheck(this, Game);
 
-    this.board = new _Board2.default(width, height);
-    this.snake = new _Snake2.default(this.board.center, 5);
+    this.board = new _Board2.default(width, height, size);
+    this.snake = new _Snake2.default(this.board.center, 5, size);
+    this._size = size;
     this._score = 0;
+    this._speed = 1;
     this.generateNewMeal();
   }
 
@@ -385,6 +405,7 @@ var Game = function () {
     key: 'reset',
     value: function reset() {
       this._score = 0;
+      this._speed = 1;
       this.snake.reset();
       this.generateNewMeal();
     }
@@ -394,20 +415,28 @@ var Game = function () {
       if (this.snake.tick(this.meal)) {
         this.generateNewMeal();
         this._score++;
+        if (this._score % 3 === 0) {
+          this._speed++;
+        }
       }
     }
   }, {
     key: 'generateNewMeal',
     value: function generateNewMeal() {
-      var x = Game._getRandomInt(1, this.board.width - 1);
-      var y = Game._getRandomInt(1, this.board.height - 1);
+      var x = Game._getRandomInt(1, this.board.width / this.board.size - 1) * this.board.size;
+      var y = Game._getRandomInt(1, this.board.height / this.board.size - 1) * this.board.size;
 
-      this.meal = new _Tile2.default(x, y);
+      this.meal = new _Tile2.default(x, y, this._size);
     }
   }, {
     key: 'score',
     get: function get() {
       return this._score;
+    }
+  }, {
+    key: 'speed',
+    get: function get() {
+      return this._speed;
     }
   }, {
     key: 'isGameOver',
